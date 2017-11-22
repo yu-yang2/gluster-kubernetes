@@ -22,8 +22,8 @@ objects:
   spec:
     ports:
     - name: deploy-heketi
-      port: 8080
-      targetPort: 8080
+      port: 8085
+      targetPort: 8085
     selector:
       deploy-heketi: pod
 - kind: Route
@@ -62,6 +62,7 @@ objects:
           deploy-heketi: pod
       spec:
         serviceAccountName: heketi-service-account
+        hostNetwork: true
         containers:
         - name: deploy-heketi
           image: heketi/heketi:dev
@@ -79,7 +80,7 @@ objects:
           - name: HEKETI_KUBE_GLUSTER_DAEMONSET
             value: "y"
           ports:
-          - containerPort: 8080
+          - containerPort: 8085
           volumeMounts:
           - name: db
             mountPath: /var/lib/heketi
@@ -90,13 +91,13 @@ objects:
             initialDelaySeconds: 3
             httpGet:
               path: /hello
-              port: 8080
+              port: 8085
           livenessProbe:
             timeoutSeconds: 3
             initialDelaySeconds: 30
             httpGet:
               path: /hello
-              port: 8080
+              port: 8085
         volumes:
         - name: db
         - name: config

@@ -13,8 +13,8 @@ spec:
     glusterfs: heketi-pod
   ports:
   - name: heketi
-    port: 8080
-    targetPort: 8080
+    port: 8085
+    targetPort: 8085
 ---
 kind: Deployment
 apiVersion: extensions/v1beta1
@@ -35,6 +35,7 @@ spec:
         heketi: pod
     spec:
       serviceAccountName: heketi-service-account
+      hostNetwork: true
       containers:
       - image: heketi/heketi:dev
         imagePullPolicy: IfNotPresent
@@ -53,7 +54,7 @@ spec:
         - name: HEKETI_KUBE_GLUSTER_DAEMONSET
           value: "y"
         ports:
-        - containerPort: 8080
+        - containerPort: 8085
         volumeMounts:
         - name: db
           mountPath: "/var/lib/heketi"
@@ -64,13 +65,13 @@ spec:
           initialDelaySeconds: 3
           httpGet:
             path: "/hello"
-            port: 8080
+            port: 8085
         livenessProbe:
           timeoutSeconds: 3
           initialDelaySeconds: 30
           httpGet:
             path: "/hello"
-            port: 8080
+            port: 8085
       volumes:
       - name: db
         glusterfs:

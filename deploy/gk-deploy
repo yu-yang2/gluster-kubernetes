@@ -814,7 +814,7 @@ if [[ ${EXISTS_DEPLOY_HEKETI} -eq 1 ]] && [[ ${EXISTS_HEKETI} -eq 0 ]]; then
   fi
 
   heketi_pod=$(${CLI} get pod --no-headers --show-all --selector="deploy-heketi" | awk '{print $1}')
-  heketi_cli="${CLI} exec -i ${heketi_pod} -- heketi-cli -s http://localhost:8080 --user admin --secret '${ADMIN_KEY}'"
+  heketi_cli="${CLI} exec -i ${heketi_pod} -- heketi-cli -s http://localhost:8085 --user admin --secret '${ADMIN_KEY}'"
 
   load_temp=$(mktemp)
   eval_output "${heketi_cli} topology load --json=/etc/heketi/topology.json 2>&1" | tee "${load_temp}"
@@ -844,7 +844,10 @@ if [[ ${EXISTS_DEPLOY_HEKETI} -eq 1 ]] && [[ ${EXISTS_HEKETI} -eq 0 ]]; then
     exit 1
   fi
 
-  eval_output "${CLI} exec -i ${heketi_pod} -- cat /tmp/heketi-storage.json | ${CLI} create -f - 2>&1"
+  #eval_output "${CLI} exec -i ${heketi_pod} -- cat /tmp/heketi-storage.json | sed -e 's/Never/Never,\nhostNetwork: true/g' | ${CLI} create -f - 2>&1"
+  eval_output "${CLI} exec -i ${heketi_pod} -- cat /tmp/heketi-storage.json > /tmp/heketi-storage.json"
+  sed -i 's/"Never"/"Never",\n"hostNetwork": true/g' /tmp/heketi-storage.json
+  eval_output "${CLI} create -f /tmp/heketi-storage.json 2>&1"
   if [[ ${?} != 0 ]]; then
     output "Failed on creating heketi storage resources."
     exit 1
@@ -915,7 +918,7 @@ administrative commands you can install 'heketi-cli' and use it as follows:
 You can find it at https://github.com/heketi/heketi/releases . Alternatively,
 use it from within the heketi pod:
 
-  # ${CLI} exec -i <HEKETI_POD> -- heketi-cli -s http://localhost:8080 --user admin --secret '<ADMIN_KEY>' cluster list
+  # ${CLI} exec -i <HEKETI_POD> -- heketi-cli -s http://localhost:8085 --user admin --secret '<ADMIN_KEY>' cluster list
 
 For dynamic provisioning, create a StorageClass similar to this:
 
