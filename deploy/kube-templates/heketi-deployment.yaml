@@ -36,6 +36,8 @@ spec:
     spec:
       serviceAccountName: heketi-service-account
       hostNetwork: true
+      nodeSelector:
+        zone: master
       containers:
       - image: heketi/heketi:dev
         imagePullPolicy: IfNotPresent
